@@ -1,0 +1,277 @@
+import React from 'react';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { Activity, TrendingUp, TrendingDown, Minus, Calendar, Target, AlertCircle, CheckCircle2, PieChart, Users, Lightbulb, Zap } from 'lucide-react';
+import { MarketAnalysisResult } from '../services/geminiService';
+import { motion } from 'motion/react';
+
+interface DashboardProps {
+  data: MarketAnalysisResult;
+}
+
+export function Dashboard({ data }: DashboardProps) {
+  const getTrendIcon = (trend: string) => {
+    switch (trend) {
+      case 'up': return <TrendingUp className="w-4 h-4 text-emerald-500" />;
+      case 'down': return <TrendingDown className="w-4 h-4 text-rose-500" />;
+      default: return <Minus className="w-4 h-4 text-slate-400" />;
+    }
+  };
+
+  const getScoreColor = (score: number) => {
+    if (score >= 75) return 'text-emerald-600';
+    if (score >= 50) return 'text-amber-500';
+    return 'text-rose-500';
+  };
+
+  const getScoreBg = (score: number) => {
+    if (score >= 75) return 'bg-emerald-50';
+    if (score >= 50) return 'bg-amber-50';
+    return 'bg-rose-50';
+  };
+
+  const getThreatColor = (level: string) => {
+    switch (level) {
+      case 'high': return 'text-rose-600 bg-rose-50 border-rose-200';
+      case 'medium': return 'text-amber-600 bg-amber-50 border-amber-200';
+      case 'low': return 'text-emerald-600 bg-emerald-50 border-emerald-200';
+      default: return 'text-slate-600 bg-slate-50 border-slate-200';
+    }
+  };
+
+  const getImpactColor = (impact: string) => {
+    switch (impact) {
+      case 'high': return 'text-blue-600 bg-blue-50 border-blue-200';
+      case 'medium': return 'text-indigo-600 bg-indigo-50 border-indigo-200';
+      case 'low': return 'text-slate-600 bg-slate-50 border-slate-200';
+      default: return 'text-slate-600 bg-slate-50 border-slate-200';
+    }
+  };
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="w-full max-w-6xl mx-auto space-y-6"
+    >
+      {/* Top Row: Key Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Readiness Score */}
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col justify-between">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wider">Market Readiness</h3>
+            <Activity className="w-5 h-5 text-slate-400" />
+          </div>
+          <div className="flex items-baseline gap-2">
+            <span className={`text-5xl font-light tracking-tight ${getScoreColor(data.readinessScore)}`}>
+              {data.readinessScore}
+            </span>
+            <span className="text-sm text-slate-400 font-mono">/100</span>
+          </div>
+          <div className="mt-4 w-full bg-slate-100 rounded-full h-1.5">
+            <div 
+              className={`h-1.5 rounded-full ${data.readinessScore >= 75 ? 'bg-emerald-500' : data.readinessScore >= 50 ? 'bg-amber-500' : 'bg-rose-500'}`}
+              style={{ width: `${data.readinessScore}%` }}
+            />
+          </div>
+        </div>
+
+        {/* Success Probability */}
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col justify-between">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wider">Est. Success Rate</h3>
+            <PieChart className="w-5 h-5 text-slate-400" />
+          </div>
+          <div className="flex items-baseline gap-2">
+            <span className={`text-5xl font-light tracking-tight ${getScoreColor(data.successProbability)}`}>
+              {data.successProbability}%
+            </span>
+          </div>
+          <div className="mt-4 w-full bg-slate-100 rounded-full h-1.5">
+            <div 
+              className={`h-1.5 rounded-full ${data.successProbability >= 75 ? 'bg-emerald-500' : data.successProbability >= 50 ? 'bg-amber-500' : 'bg-rose-500'}`}
+              style={{ width: `${data.successProbability}%` }}
+            />
+          </div>
+        </div>
+
+        {/* Optimal Window */}
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col justify-between">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wider">Optimal Window</h3>
+            <Calendar className="w-5 h-5 text-slate-400" />
+          </div>
+          <div>
+            <div className="text-3xl font-semibold text-slate-900 mb-2">
+              {data.optimalLaunchWindow}
+            </div>
+            <p className="text-slate-500 text-xs leading-relaxed line-clamp-2">
+              {data.summary}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Middle Row: Chart & Factors */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Trend Chart */}
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 lg:col-span-2">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wider">12-Month Projection</h3>
+            <Target className="w-5 h-5 text-slate-400" />
+          </div>
+          <div className="h-[300px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={data.trendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorFavorability" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                <XAxis 
+                  dataKey="month" 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fontSize: 12, fill: '#64748b' }} 
+                  dy={10}
+                />
+                <YAxis 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fontSize: 12, fill: '#64748b' }}
+                  domain={[0, 100]}
+                />
+                <Tooltip 
+                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                  itemStyle={{ color: '#0f172a', fontWeight: 500 }}
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="favorability" 
+                  stroke="#3b82f6" 
+                  strokeWidth={2}
+                  fillOpacity={1} 
+                  fill="url(#colorFavorability)" 
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Key Factors */}
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wider">Key Factors</h3>
+            <AlertCircle className="w-5 h-5 text-slate-400" />
+          </div>
+          <div className="flex-1 overflow-y-auto pr-2 space-y-4 max-h-[300px]">
+            {data.factors.map((factor, idx) => (
+              <div key={idx} className="p-4 rounded-xl border border-slate-100 bg-slate-50/50">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-medium text-slate-900 text-sm">{factor.name}</span>
+                  <div className="flex items-center gap-2">
+                    <span className={`text-xs font-mono px-2 py-0.5 rounded-full ${getScoreBg(factor.score)} ${getScoreColor(factor.score)}`}>
+                      {factor.score}/100
+                    </span>
+                    {getTrendIcon(factor.trend)}
+                  </div>
+                </div>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  {factor.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* New Row: Market Gaps & Competitors */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Market Gaps */}
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+          <div className="flex items-center gap-2 mb-6">
+            <Target className="w-5 h-5 text-blue-500" />
+            <h3 className="text-sm font-medium text-slate-900 uppercase tracking-wider">Market Gaps</h3>
+          </div>
+          <ul className="space-y-3">
+            {data.marketGaps.map((gap, idx) => (
+              <li key={idx} className="flex items-start gap-3">
+                <div className="flex-shrink-0 w-1.5 h-1.5 rounded-full bg-blue-500 mt-2" />
+                <p className="text-sm text-slate-700 leading-relaxed">{gap}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Competitors */}
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+          <div className="flex items-center gap-2 mb-6">
+            <Users className="w-5 h-5 text-slate-500" />
+            <h3 className="text-sm font-medium text-slate-900 uppercase tracking-wider">Competitor Landscape</h3>
+          </div>
+          <div className="space-y-4">
+            {data.competitors.map((comp, idx) => (
+              <div key={idx} className="flex flex-col sm:flex-row sm:items-start gap-3 p-4 rounded-xl bg-slate-50 border border-slate-100">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-medium text-slate-900 text-sm">{comp.name}</span>
+                    <span className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full border ${getThreatColor(comp.threatLevel)}`}>
+                      {comp.threatLevel} Threat
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 leading-relaxed">{comp.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* New Row: Innovations */}
+      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+        <div className="flex items-center gap-2 mb-6">
+          <Lightbulb className="w-5 h-5 text-amber-500" />
+          <h3 className="text-sm font-medium text-slate-900 uppercase tracking-wider">Recommended Innovations</h3>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {data.innovations.map((inv, idx) => (
+            <div key={idx} className="p-5 rounded-xl border border-slate-100 bg-white shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-start justify-between mb-3">
+                <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
+                  <Zap className="w-4 h-4 text-amber-500" />
+                </div>
+                <span className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full border ${getImpactColor(inv.impact)}`}>
+                  {inv.impact} Impact
+                </span>
+              </div>
+              <h4 className="font-medium text-slate-900 text-sm mb-2">{inv.title}</h4>
+              <p className="text-xs text-slate-500 leading-relaxed">{inv.description}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Bottom Row: Recommendations */}
+      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+        <div className="flex items-center gap-2 mb-6">
+          <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+          <h3 className="text-sm font-medium text-slate-900 uppercase tracking-wider">Strategic Recommendations</h3>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {data.recommendations.map((rec, idx) => (
+            <div key={idx} className="flex items-start gap-3 p-4 rounded-xl bg-slate-50 border border-slate-100">
+              <div className="flex-shrink-0 w-6 h-6 rounded-full bg-white border border-slate-200 flex items-center justify-center text-xs font-medium text-slate-500 mt-0.5">
+                {idx + 1}
+              </div>
+              <p className="text-sm text-slate-700 leading-relaxed">
+                {rec}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
