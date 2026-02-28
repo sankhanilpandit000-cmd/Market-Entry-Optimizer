@@ -110,7 +110,7 @@ if st.button("Analyze ➔", type="primary"):
                 c_chart, c_factors = st.columns([2, 1])
                 with c_chart:
                     st.markdown('<div class="ui-card"><div class="ui-title">📊 12-MONTH PROJECTION</div>', unsafe_allow_html=True)
-                    chart_data = pd.DataFrame({"Projection":}, index=[f"M{i}" for i in range(1, 13)])
+                    chart_data = pd.DataFrame({"Projection": [50 + i*5 for i in range(12)]}, index=[f"M{i}" for i in range(1, 13)])
                     st.area_chart(chart_data, color="#3b82f6", height=280)
                     st.markdown('</div>', unsafe_allow_html=True)
                 
@@ -165,4 +165,3 @@ if st.button("Analyze ➔", type="primary"):
 
             except Exception as e:
                 st.error(f"An error occurred: {e}")
-
