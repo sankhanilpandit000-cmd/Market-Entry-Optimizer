@@ -6,7 +6,6 @@ import pandas as pd
 # --- 1. PAGE SETUP & CUSTOM CSS ---
 st.set_page_config(page_title="Market Entry Optimizer", page_icon="📊", layout="wide")
 
-# This CSS mimics the Tailwind styles from your React reference file
 st.markdown("""
 <style>
     .stApp { background-color: #f8fafc; font-family: 'Inter', sans-serif; }
@@ -37,7 +36,6 @@ with st.sidebar:
 # --- 3. SEARCH & LOGIC ---
 query = st.text_input("Describe your product and target market (e.g., 'Paracetamol'):", placeholder="Type here...")
 
-# Helper functions for dynamic styling based on your React file logic
 def get_color(score):
     if score >= 75: return "metric-value-high"
     elif score >= 50: return "metric-value-med"
@@ -109,7 +107,7 @@ if st.button("Analyze ➔", type="primary"):
                 st.write("")
 
                 # --- ROW 2: CHART AND FACTORS ---
-                c_chart, c_factors = st.columns([2, 1])
+                [cite_start]c_chart, c_factors = st.columns([2, 1])
                 with c_chart:
                     st.markdown('<div class="ui-card"><div class="ui-title">📊 12-MONTH PROJECTION</div>', unsafe_allow_html=True)
                     chart_data = pd.DataFrame({"Projection":}, index=[f"M{i}" for i in range(1, 13)])
@@ -167,5 +165,3 @@ if st.button("Analyze ➔", type="primary"):
 
             except Exception as e:
                 st.error(f"An error occurred: {e}")
-
-
