@@ -1,6 +1,6 @@
 """
-Market Entry Optimization - Simple One-Page Version
-Easy-to-use pharmaceutical market entry intelligence
+Market Entry Optimization - Fixed Working Version
+Based on the previous stable version with improvements
 """
 
 import streamlit as st
@@ -18,7 +18,7 @@ st.set_page_config(
 )
 
 # ============================================================================
-# SIMPLE CSS
+# STYLING
 # ============================================================================
 st.markdown("""
 <style>
@@ -130,96 +130,166 @@ st.markdown('<div class="section"><h2>📝 Product Information</h2>', unsafe_all
 col1, col2 = st.columns(2)
 
 with col1:
-    api_key = st.text_input("🔐 API Key", type="password", placeholder="Enter your Google AI API Key")
-    product_name = st.text_input("Product Name", placeholder="e.g., Atorvastatin")
-    therapeutic_area = st.selectbox("Therapeutic Area", 
-        ["Cardiology", "Oncology", "Immunology", "Infectious Disease", "Neurology", "Other"])
+    api_key = st.text_input(
+        "🔐 API Key", 
+        type="password", 
+        placeholder="Enter your Google AI API Key",
+        help="Get from aistudio.google.com/app/apikey"
+    )
+    product_name = st.text_input(
+        "Product Name", 
+        placeholder="e.g., Atorvastatin"
+    )
+    therapeutic_area = st.selectbox(
+        "Therapeutic Area", 
+        ["Cardiology", "Oncology", "Immunology", "Infectious Disease", "Neurology", "Other"]
+    )
 
 with col2:
-    dosage_form = st.selectbox("Dosage Form", 
-        ["Oral Tablet", "Injectable", "Inhalation", "Topical", "Other"])
-    markets = st.multiselect("Target Markets", 
-        ["USA", "Europe", "APAC", "LATAM"], default=["USA", "Europe", "APAC"])
-    
-    product_details = st.text_area("Product Details", 
-        placeholder="Briefly describe your product...", height=80)
+    dosage_form = st.selectbox(
+        "Dosage Form", 
+        ["Oral Tablet", "Injectable", "Inhalation", "Topical", "Other"]
+    )
+    markets = st.multiselect(
+        "Target Markets", 
+        ["USA", "Europe", "APAC", "LATAM"], 
+        default=["USA", "Europe", "APAC"]
+    )
+
+product_details = st.text_area(
+    "Product Details", 
+    placeholder="Briefly describe your product, indication, mechanism of action...",
+    height=80
+)
 
 st.markdown('</div>', unsafe_allow_html=True)
 
 # ============================================================================
-# GENERATE BUTTON
+# ANALYZE BUTTON
 # ============================================================================
-if st.button("🚀 ANALYZE MARKET", use_container_width=True):
+col_btn1, col_btn2, col_btn3 = st.columns([1, 2, 1])
+
+with col_btn2:
+    analyze_clicked = st.button("🚀 ANALYZE MARKET", use_container_width=True)
+
+# ============================================================================
+# VALIDATION & ANALYSIS
+# ============================================================================
+if analyze_clicked:
     
     # Validation
-    if not api_key:
-        st.error("❌ Please enter API Key")
-        st.stop()
-    if not product_name:
-        st.error("❌ Please enter Product Name")
-        st.stop()
-    if not product_details:
-        st.error("❌ Please enter Product Details")
+    errors = []
+    
+    if not api_key or api_key.strip() == "":
+        errors.append("API Key is required")
+    if not product_name or product_name.strip() == "":
+        errors.append("Product Name is required")
+    if not product_details or product_details.strip() == "":
+        errors.append("Product Details are required")
+    
+    if errors:
+        for error in errors:
+            st.error(f"❌ {error}")
         st.stop()
     
     # Configure API
     try:
-        genai.configure(api_key=api_key)
+        genai.configure(api_key=api_key.strip())
         model = genai.GenerativeModel('gemini-2.5-flash')
-    except:
-        st.error("❌ Invalid API Key")
+    except Exception as e:
+        st.error(f"❌ API Key Error: Invalid or expired. Please check your API Key.")
+        st.info("💡 Get your API Key from: https://aistudio.google.com/app/apikey")
         st.stop()
     
-    # Simple prompt
-    prompt = f"""
-    Give me a quick pharmaceutical market analysis for {product_name} ({therapeutic_area}).
-    Return ONLY valid JSON with these exact fields:
-    {{
-        "go_decision": "GO / NO-GO / CONDITIONAL",
-        "confidence": 85,
-        "best_market": "USA",
-        "best_market_size": "$2.1B",
-        "launch_timeline": "Q2 2025",
-        "reimbursement_chance": 82,
-        "optimal_price": "$2400",
-        "top_competitors": ["Competitor A", "Competitor B"],
-        "key_risks": ["Market saturation", "Pricing pressure"],
-        "key_opportunities": ["Patent protection", "Growing patient population"],
-        "recommended_actions": ["Start regulatory process", "Finalize partnerships", "Plan marketing"]
-    }}
-    """
+    # Create better prompt
+    prompt = f"""You are a pharmaceutical market analyst. Analyze the market entry opportunity for this product and return ONLY valid JSON.
+
+Product Name: {product_name}
+Therapeutic Area: {therapeutic_area}
+Dosage Form: {dosage_form}
+Target Markets: {', '.join(markets)}
+Details: {product_details}
+
+Return this exact JSON structure with realistic data:
+{{
+    "go_decision": "GO",
+    "confidence": 85,
+    "best_market": "USA",
+    "best_market_size": "$2.1B",
+    "launch_timeline": "Q2 2025",
+    "reimbursement_chance": 82,
+    "optimal_price": "$2400",
+    "top_competitors": ["Competitor A", "Competitor B"],
+    "key_risks": ["Market saturation", "Pricing pressure"],
+    "key_opportunities": ["Patent protection", "Growing patient population"],
+    "recommended_actions": ["Start regulatory process", "Finalize partnerships", "Plan marketing"]
+}}"""
     
-    with st.spinner("⏳ Analyzing market..."):
+    with st.spinner("⏳ Analyzing market... Please wait..."):
         try:
             response = model.generate_content(prompt)
-            data = json.loads(response.text)
+            
+            if not response.text:
+                st.error("❌ Empty response from API. Please try again.")
+                st.stop()
+            
+            # Clean response
+            response_text = response.text.strip()
+            
+            # Remove markdown code blocks if present
+            if response_text.startswith("```"):
+                lines = response_text.split("\n")
+                response_text = "\n".join([l for l in lines if not l.startswith("```")])
+            
+            # Parse JSON
+            try:
+                data = json.loads(response_text)
+            except json.JSONDecodeError:
+                st.error("❌ Could not parse response. Please try again.")
+                st.stop()
             
             # ========================================================
-            # RESULTS ON ONE PAGE
+            # RESULTS - ALL ON ONE PAGE
             # ========================================================
             
-            # DECISION
+            # 1. DECISION
             st.markdown('<div class="section"><h2>✅ DECISION</h2>', unsafe_allow_html=True)
             
             decision = data.get("go_decision", "CONDITIONAL")
-            decision_color = "success" if "GO" in decision else "danger" if "NO" in decision else "warning"
             confidence = data.get("confidence", 0)
             timeline = data.get("launch_timeline", "TBD")
+            
+            decision_color = "success" if "GO" in decision else "danger" if "NO" in decision else "warning"
             
             col1, col2, col3 = st.columns(3)
             
             with col1:
-                st.markdown(f'<div class="kpi"><div class="kpi-label">Go/No-Go</div><div class="kpi-value {decision_color}">{decision}</div></div>', unsafe_allow_html=True)
+                st.markdown(f'''
+                <div class="kpi">
+                    <div class="kpi-label">Go/No-Go Decision</div>
+                    <div class="kpi-value {decision_color}">{decision}</div>
+                </div>
+                ''', unsafe_allow_html=True)
             
             with col2:
-                st.markdown(f'<div class="kpi"><div class="kpi-label">Confidence</div><div class="kpi-value info">{confidence}%</div></div>', unsafe_allow_html=True)
+                st.markdown(f'''
+                <div class="kpi">
+                    <div class="kpi-label">Confidence Level</div>
+                    <div class="kpi-value info">{confidence}%</div>
+                </div>
+                ''', unsafe_allow_html=True)
             
             with col3:
-                st.markdown(f'<div class="kpi"><div class="kpi-label">Launch Timeline</div><div class="kpi-value info">{timeline}</div></div>', unsafe_allow_html=True)
+                st.markdown(f'''
+                <div class="kpi">
+                    <div class="kpi-label">Launch Timeline</div>
+                    <div class="kpi-value info">{timeline}</div>
+                </div>
+                ''', unsafe_allow_html=True)
             
             st.markdown('</div>', unsafe_allow_html=True)
             
-            # MARKET ANALYSIS
+            # 2. MARKET ANALYSIS
             st.markdown('<div class="section"><h2>📊 MARKET ANALYSIS</h2>', unsafe_allow_html=True)
             
             best_market = data.get("best_market", "N/A")
@@ -230,31 +300,50 @@ if st.button("🚀 ANALYZE MARKET", use_container_width=True):
             col1, col2, col3, col4 = st.columns(4)
             
             with col1:
-                st.markdown(f'<div class="kpi"><div class="kpi-label">Best Market</div><div class="kpi-value info">{best_market}</div></div>', unsafe_allow_html=True)
+                st.markdown(f'''
+                <div class="kpi">
+                    <div class="kpi-label">Best Entry Market</div>
+                    <div class="kpi-value info">{best_market}</div>
+                </div>
+                ''', unsafe_allow_html=True)
             
             with col2:
-                st.markdown(f'<div class="kpi"><div class="kpi-label">Market Size</div><div class="kpi-value info">{market_size}</div></div>', unsafe_allow_html=True)
+                st.markdown(f'''
+                <div class="kpi">
+                    <div class="kpi-label">Market Size</div>
+                    <div class="kpi-value info">{market_size}</div>
+                </div>
+                ''', unsafe_allow_html=True)
             
             with col3:
-                st.markdown(f'<div class="kpi"><div class="kpi-label">Reimbursement</div><div class="kpi-value success">{reimbursement}%</div></div>', unsafe_allow_html=True)
+                st.markdown(f'''
+                <div class="kpi">
+                    <div class="kpi-label">Reimbursement Chance</div>
+                    <div class="kpi-value success">{reimbursement}%</div>
+                </div>
+                ''', unsafe_allow_html=True)
             
             with col4:
-                st.markdown(f'<div class="kpi"><div class="kpi-label">Optimal Price</div><div class="kpi-value info">{optimal_price}</div></div>', unsafe_allow_html=True)
+                st.markdown(f'''
+                <div class="kpi">
+                    <div class="kpi-label">Optimal Launch Price</div>
+                    <div class="kpi-value info">{optimal_price}</div>
+                </div>
+                ''', unsafe_allow_html=True)
             
             st.markdown('</div>', unsafe_allow_html=True)
             
-            # COMPETITIVE LANDSCAPE
+            # 3. COMPETITIVE LANDSCAPE
             st.markdown('<div class="section"><h2>🏆 COMPETITIVE LANDSCAPE</h2>', unsafe_allow_html=True)
             
             competitors = data.get("top_competitors", [])
-            
             st.write("**Top Competitors:**")
             for idx, comp in enumerate(competitors, 1):
                 st.write(f"{idx}. {comp}")
             
             st.markdown('</div>', unsafe_allow_html=True)
             
-            # RISKS & OPPORTUNITIES
+            # 4. RISKS & OPPORTUNITIES
             st.markdown('<div class="section">', unsafe_allow_html=True)
             
             col1, col2 = st.columns(2)
@@ -273,21 +362,25 @@ if st.button("🚀 ANALYZE MARKET", use_container_width=True):
             
             st.markdown('</div>', unsafe_allow_html=True)
             
-            # RECOMMENDED ACTIONS
+            # 5. RECOMMENDED ACTIONS
             st.markdown('<div class="section"><h2>📋 RECOMMENDED ACTIONS</h2>', unsafe_allow_html=True)
             
             actions = data.get("recommended_actions", [])
             for idx, action in enumerate(actions, 1):
-                st.markdown(f'<div style="background: rgba(30, 41, 59, 0.9); border-left: 3px solid #06b6d4; padding: 12px; margin: 8px 0; border-radius: 4px;"><strong>{idx}.</strong> {action}</div>', unsafe_allow_html=True)
+                st.markdown(f'''
+                <div style="background: rgba(30, 41, 59, 0.9); border-left: 3px solid #06b6d4; padding: 12px; margin: 8px 0; border-radius: 4px;">
+                    <strong>{idx}.</strong> {action}
+                </div>
+                ''', unsafe_allow_html=True)
             
             st.markdown('</div>', unsafe_allow_html=True)
             
-            # DOWNLOAD
+            # 6. EXPORT
             st.markdown('<div class="section"><h2>📥 EXPORT RESULTS</h2>', unsafe_allow_html=True)
             
             report_json = json.dumps(data, indent=2)
             st.download_button(
-                label="📊 Download Report",
+                label="📊 Download Report (JSON)",
                 data=report_json,
                 file_name=f"Market_Entry_{product_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
                 mime="application/json",
@@ -296,15 +389,20 @@ if st.button("🚀 ANALYZE MARKET", use_container_width=True):
             
             st.markdown('</div>', unsafe_allow_html=True)
             
-            st.success("✅ Analysis Complete!")
+            # Success message
+            st.success("✅ Market Analysis Complete!")
+            st.balloons()
             
-        except json.JSONDecodeError:
-            st.error("❌ API response error. Try again.")
         except Exception as e:
-            st.error(f"❌ Error: {str(e)}")
+            st.error(f"❌ Analysis Error: {str(e)}")
+            st.info("💡 Please check your input and try again, or contact support.")
 
 # ============================================================================
 # FOOTER
 # ============================================================================
 st.markdown("---")
-st.markdown('<div style="text-align: center; color: #64748b; font-size: 0.8rem;"><strong>Market Entry Optimization</strong> | © 2025</div>', unsafe_allow_html=True)
+st.markdown('''
+<div style="text-align: center; color: #64748b; font-size: 0.8rem; padding: 15px;">
+    <strong>Market Entry Optimization</strong> | Pharmaceutical Market Intelligence | © 2025
+</div>
+''', unsafe_allow_html=True)
