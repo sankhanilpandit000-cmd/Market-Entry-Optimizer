@@ -1,14 +1,12 @@
 """
-Market Entry Optimization - Ultra Graphical Enterprise Dashboard
-COMPLETELY FIXED - Zero Dependencies Issues
+Market Entry Optimization - ULTIMATE ENTERPRISE DASHBOARD
+PRODUCTION READY - All Errors Fixed
 """
 
 import streamlit as st
 import google.generativeai as genai
 import json
 from datetime import datetime
-
-# Removed all problematic imports
 
 st.set_page_config(page_title="Market Entry Optimization Dashboard", page_icon="🚀", layout="wide")
 
@@ -65,7 +63,6 @@ st.markdown("""
     padding: 22px;
     text-align: center;
     margin: 12px 0;
-    transition: all 0.4s ease;
 }
 
 .kpi-card:hover {
@@ -89,19 +86,12 @@ st.markdown("""
     font-weight: 900;
 }
 
-.kpi-subtext {
-    color: #cbd5e1;
-    font-size: 0.75rem;
-    margin-top: 5px;
-}
-
 .country-card {
     background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(20, 30, 50, 0.9));
     border: 2px solid rgba(6, 182, 212, 0.3);
     border-radius: 16px;
     padding: 20px;
     margin: 12px 0;
-    transition: all 0.4s ease;
 }
 
 .country-card:hover {
@@ -245,15 +235,8 @@ input, textarea, select {
 }
 
 .success { color: #10b981; }
-.warning { color: #f59e0b; }
 .danger { color: #ef4444; }
 .info { color: #06b6d4; }
-
-.metric-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 15px;
-}
 </style>
 """, unsafe_allow_html=True)
 
@@ -283,7 +266,7 @@ col1, col2 = st.columns(2)
 with col1:
     markets = st.multiselect("🌍 Target Markets", 
         ["USA", "Europe", "APAC", "LATAM", "MENA"], 
-        default=["USA", "Europe", "APAC"])
+        default=["USA"])
 with col2:
     product_details = st.text_area("📋 Product Details", 
         placeholder="Indication, mechanism of action, patient population...",
@@ -296,35 +279,35 @@ with col_btn2:
     analyze_clicked = st.button("🚀 GENERATE DASHBOARD", use_container_width=True)
 
 if analyze_clicked:
-    errors = []
     if not api_key or api_key.strip() == "":
-        errors.append("API Key is required")
+        st.error("❌ API Key is required")
+        st.stop()
     if not product_name or product_name.strip() == "":
-        errors.append("Product Name is required")
+        st.error("❌ Product Name is required")
+        st.stop()
     if not product_details or product_details.strip() == "":
-        errors.append("Product Details are required")
-    
-    if errors:
-        for error in errors:
-            st.error(f"❌ {error}")
+        st.error("❌ Product Details are required")
+        st.stop()
+    if not markets or len(markets) == 0:
+        st.error("❌ Select at least one market")
         st.stop()
     
     try:
         genai.configure(api_key=api_key.strip())
         model = genai.GenerativeModel('gemini-2.5-flash')
-    except:
-        st.error(f"❌ API Key Error: Invalid or expired")
+    except Exception as e:
+        st.error(f"❌ API Configuration Error: {str(e)}")
         st.stop()
     
-    prompt = f"""You are a pharmaceutical market analyst. Analyze the market entry opportunity and return ONLY valid JSON.
+    prompt = f"""You are a pharmaceutical market analyst. Analyze and return ONLY valid JSON.
 
 Product: {product_name}
-Therapeutic Area: {therapeutic_area}
-Dosage Form: {dosage_form}
-Target Markets: {', '.join(markets)}
+Area: {therapeutic_area}
+Form: {dosage_form}
+Markets: {','.join(markets) if isinstance(markets, list) else str(markets)}
 Details: {product_details}
 
-Return this exact JSON:
+Return this JSON:
 {{
     "go_decision": "GO",
     "confidence": 85,
@@ -333,29 +316,34 @@ Return this exact JSON:
     "launch_timeline": "Q2 2025",
     "reimbursement_chance": 82,
     "optimal_price": "$2400",
-    "top_competitors": ["Competitor A (22%)", "Competitor B (18%)", "Competitor C (15%)"],
+    "top_competitors": ["Competitor A", "Competitor B", "Competitor C"],
     "top_brands_segment": ["Lipitor", "Crestor", "Simvastatin", "Pravastatin", "Rosuvastatin"],
     "key_risks": ["Market saturation", "Pricing pressure", "Patent cliffs"],
     "key_opportunities": ["Patent protection", "Growing population", "Expanding indications"],
     "other_innovations": ["Extended-release", "Combination therapy", "Personalized medicine", "Digital health", "AI diagnosis", "Precision dosing"],
     "emerging_countries": [
-        {"country": "India", "readiness_score": 85, "market_size": "$450M", "growth_rate": "18%", "competitive_intensity": "High", "potential": "Very High"},
-        {"country": "Brazil", "readiness_score": 82, "market_size": "$380M", "growth_rate": "15%", "competitive_intensity": "Medium", "potential": "High"},
-        {"country": "Vietnam", "readiness_score": 78, "market_size": "$220M", "growth_rate": "22%", "competitive_intensity": "Low", "potential": "Very High"},
-        {"country": "Philippines", "readiness_score": 75, "market_size": "$180M", "growth_rate": "20%", "competitive_intensity": "Low", "potential": "High"},
-        {"country": "Thailand", "readiness_score": 80, "market_size": "$290M", "growth_rate": "16%", "competitive_intensity": "Medium", "potential": "High"}
+        {{"country": "India", "readiness_score": 85, "market_size": "$450M", "growth_rate": "18%", "competitive_intensity": "High"}},
+        {{"country": "Brazil", "readiness_score": 82, "market_size": "$380M", "growth_rate": "15%", "competitive_intensity": "Medium"}},
+        {{"country": "Vietnam", "readiness_score": 78, "market_size": "$220M", "growth_rate": "22%", "competitive_intensity": "Low"}},
+        {{"country": "Philippines", "readiness_score": 75, "market_size": "$180M", "growth_rate": "20%", "competitive_intensity": "Low"}},
+        {{"country": "Thailand", "readiness_score": 80, "market_size": "$290M", "growth_rate": "16%", "competitive_intensity": "Medium"}}
     ],
-    "india_market_gap": "Gap 1: Limited generic alternatives, Gap 2: Need for affordable pricing, Gap 3: Inadequate distribution in tier 2/3 cities, Gap 4: Low awareness",
+    "india_market_gap": "Gap 1: Limited generic alternatives, Gap 2: Affordable pricing needed, Gap 3: Tier 2/3 distribution gaps, Gap 4: Low awareness",
     "recommended_actions": ["Start regulatory discussions", "Finalize manufacturing partnerships", "Develop market entry strategy"]
 }}"""
     
-    with st.spinner("⏳ Generating Advanced Dashboard..."):
+    with st.spinner("⏳ Generating Dashboard..."):
         try:
             response = model.generate_content(prompt)
             response_text = response.text.strip()
+            
+            if response_text.startswith("```json"):
+                response_text = response_text[7:]
             if response_text.startswith("```"):
-                lines = response_text.split("\n")
-                response_text = "\n".join([l for l in lines if not l.startswith("```")])
+                response_text = response_text[3:]
+            if response_text.endswith("```"):
+                response_text = response_text[:-3]
+            response_text = response_text.strip()
             
             data = json.loads(response_text)
             
@@ -363,12 +351,12 @@ Return this exact JSON:
             st.markdown('<div class="dashboard-section">', unsafe_allow_html=True)
             st.markdown('<div class="section-title">📊 Executive Decision & Key Metrics</div>', unsafe_allow_html=True)
             
-            decision = data.get("go_decision", "CONDITIONAL")
-            confidence = data.get("confidence", 0)
-            timeline = data.get("launch_timeline", "TBD")
-            reimbursement = data.get("reimbursement_chance", 0)
-            optimal_price = data.get("optimal_price", "N/A")
-            best_market = data.get("best_market", "N/A")
+            decision = str(data.get("go_decision", "CONDITIONAL"))
+            confidence = int(data.get("confidence", 0))
+            timeline = str(data.get("launch_timeline", "TBD"))
+            reimbursement = int(data.get("reimbursement_chance", 0))
+            optimal_price = str(data.get("optimal_price", "N/A"))
+            best_market = str(data.get("best_market", "N/A"))
             
             decision_color = "success" if "GO" in decision else "danger"
             
@@ -394,38 +382,39 @@ Return this exact JSON:
             st.markdown('<div class="section-title">🌍 Top 5 Emerging Countries Comparison</div>', unsafe_allow_html=True)
             
             emerging_countries = data.get("emerging_countries", [])
-            col_countries = st.columns(5)
-            
-            for idx, country_data in enumerate(emerging_countries[:5]):
-                with col_countries[idx]:
-                    country = country_data.get("country", "N/A")
-                    readiness = country_data.get("readiness_score", 0)
-                    market = country_data.get("market_size", "N/A")
-                    growth = country_data.get("growth_rate", "N/A")
-                    intensity = country_data.get("competitive_intensity", "N/A")
-                    
-                    st.markdown(f'''
-                    <div class="country-card">
-                        <div class="rank-badge">{idx+1}</div>
-                        <div class="country-name">{country}</div>
-                        <div class="stat-row">
-                            <span>📊 Readiness:</span>
-                            <span class="stat-value">{readiness}%</span>
+            if isinstance(emerging_countries, list) and len(emerging_countries) > 0:
+                col_countries = st.columns(5)
+                
+                for idx, country_data in enumerate(emerging_countries[:5]):
+                    with col_countries[idx]:
+                        country = str(country_data.get("country", "N/A"))
+                        readiness = int(country_data.get("readiness_score", 0))
+                        market = str(country_data.get("market_size", "N/A"))
+                        growth = str(country_data.get("growth_rate", "N/A"))
+                        intensity = str(country_data.get("competitive_intensity", "N/A"))
+                        
+                        st.markdown(f'''
+                        <div class="country-card">
+                            <div class="rank-badge">{idx+1}</div>
+                            <div class="country-name">{country}</div>
+                            <div class="stat-row">
+                                <span>📊 Readiness:</span>
+                                <span class="stat-value">{readiness}%</span>
+                            </div>
+                            <div class="stat-row">
+                                <span>💰 Market:</span>
+                                <span class="stat-value">{market}</span>
+                            </div>
+                            <div class="stat-row">
+                                <span>📈 Growth:</span>
+                                <span class="stat-value">{growth}</span>
+                            </div>
+                            <div class="stat-row">
+                                <span>🏢 Competition:</span>
+                                <span class="stat-value">{intensity}</span>
+                            </div>
                         </div>
-                        <div class="stat-row">
-                            <span>💰 Market:</span>
-                            <span class="stat-value">{market}</span>
-                        </div>
-                        <div class="stat-row">
-                            <span>📈 Growth:</span>
-                            <span class="stat-value">{growth}</span>
-                        </div>
-                        <div class="stat-row">
-                            <span>🏢 Competition:</span>
-                            <span class="stat-value">{intensity}</span>
-                        </div>
-                    </div>
-                    ''', unsafe_allow_html=True)
+                        ''', unsafe_allow_html=True)
             
             st.markdown('</div>', unsafe_allow_html=True)
             
@@ -434,10 +423,10 @@ Return this exact JSON:
             st.markdown('<div class="section-title">🏆 Top Brands in Segment</div>', unsafe_allow_html=True)
             
             top_brands = data.get("top_brands_segment", [])
-            
-            st.markdown("### **Leading Market Players**")
-            for idx, brand in enumerate(top_brands[:5], 1):
-                st.markdown(f'<div class="brand-badge">#{idx} {brand}</div>', unsafe_allow_html=True)
+            if isinstance(top_brands, list):
+                st.markdown("### **Leading Market Players**")
+                for idx, brand in enumerate(top_brands[:5], 1):
+                    st.markdown(f'<div class="brand-badge">#{idx} {str(brand)}</div>', unsafe_allow_html=True)
             
             st.markdown('</div>', unsafe_allow_html=True)
             
@@ -446,11 +435,11 @@ Return this exact JSON:
             st.markdown('<div class="section-title">💡 Other Innovations & Opportunities</div>', unsafe_allow_html=True)
             
             innovations = data.get("other_innovations", [])
-            col_inn = st.columns(2)
-            
-            for idx, innovation in enumerate(innovations[:6]):
-                with col_inn[idx % 2]:
-                    st.markdown(f'<div class="innovation-card"><strong>✨ {innovation}</strong></div>', unsafe_allow_html=True)
+            if isinstance(innovations, list):
+                col_inn = st.columns(2)
+                for idx, innovation in enumerate(innovations[:6]):
+                    with col_inn[idx % 2]:
+                        st.markdown(f'<div class="innovation-card"><strong>✨ {str(innovation)}</strong></div>', unsafe_allow_html=True)
             
             st.markdown('</div>', unsafe_allow_html=True)
             
@@ -458,12 +447,12 @@ Return this exact JSON:
             st.markdown('<div class="dashboard-section">', unsafe_allow_html=True)
             st.markdown('<div class="section-title">🇮🇳 India Market Gap Analysis</div>', unsafe_allow_html=True)
             
-            india_gap = data.get("india_market_gap", "")
+            india_gap = str(data.get("india_market_gap", ""))
             col1, col2 = st.columns([1.6, 1.2])
             
             with col1:
                 st.markdown("### **Identified Gaps**")
-                if isinstance(india_gap, str) and ", " in india_gap:
+                if ", " in india_gap:
                     gaps = india_gap.split(", ")
                     for idx, gap in enumerate(gaps, 1):
                         gap_text = gap.replace(f"Gap {idx}: ", "")
@@ -483,13 +472,17 @@ Return this exact JSON:
             
             with col1:
                 st.markdown("### **🚨 Key Risks**")
-                for risk in data.get("key_risks", []):
-                    st.markdown(f'<div class="risk-item">{risk}</div>', unsafe_allow_html=True)
+                risks = data.get("key_risks", [])
+                if isinstance(risks, list):
+                    for risk in risks:
+                        st.markdown(f'<div class="risk-item">{str(risk)}</div>', unsafe_allow_html=True)
             
             with col2:
                 st.markdown("### **✓ Opportunities**")
-                for opp in data.get("key_opportunities", []):
-                    st.markdown(f'<div class="opportunity-item">{opp}</div>', unsafe_allow_html=True)
+                opportunities = data.get("key_opportunities", [])
+                if isinstance(opportunities, list):
+                    for opp in opportunities:
+                        st.markdown(f'<div class="opportunity-item">{str(opp)}</div>', unsafe_allow_html=True)
             
             st.markdown('</div>', unsafe_allow_html=True)
             
@@ -498,11 +491,11 @@ Return this exact JSON:
             st.markdown('<div class="section-title">📋 Recommended Actions</div>', unsafe_allow_html=True)
             
             actions = data.get("recommended_actions", [])
-            col_act = st.columns(3)
-            
-            for idx, action in enumerate(actions[:3]):
-                with col_act[idx]:
-                    st.markdown(f'<div class="action-item"><strong>Step {idx+1}:</strong><br>{action}</div>', unsafe_allow_html=True)
+            if isinstance(actions, list):
+                col_act = st.columns(3)
+                for idx, action in enumerate(actions[:3]):
+                    with col_act[idx]:
+                        st.markdown(f'<div class="action-item"><strong>Step {idx+1}:</strong><br>{str(action)}</div>', unsafe_allow_html=True)
             
             st.markdown('</div>', unsafe_allow_html=True)
             
@@ -526,7 +519,7 @@ Return this exact JSON:
             st.balloons()
             
         except json.JSONDecodeError as e:
-            st.error(f"❌ JSON Error: {str(e)}")
+            st.error(f"❌ JSON Parse Error: {str(e)}")
         except Exception as e:
             st.error(f"❌ Error: {str(e)}")
 
