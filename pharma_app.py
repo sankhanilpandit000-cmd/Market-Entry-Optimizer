@@ -21,8 +21,8 @@ import sys
 # ============================================================================
 try:
     st.set_page_config(
-        page_title="PharmIntel Pro v4.1 | Enterprise Market Intelligence",
-        page_icon="💊",
+        page_title="Market Entry Optimization | Enterprise Intelligence Platform",
+        page_icon="🚀",
         layout="wide",
         initial_sidebar_state="expanded"
     )
@@ -246,7 +246,7 @@ def safe_get_nested(data, keys, default="N/A"):
 try:
     st.markdown("""
     <div class="main-header">
-        <div class="header-title">💊 PharmIntel Pro v4.1</div>
+        <div class="header-title">🚀 Market Entry Optimization</div>
         <div class="header-subtitle">Enterprise Pharmaceutical Market Entry Intelligence Platform</div>
     </div>
     """, unsafe_allow_html=True)
@@ -261,12 +261,38 @@ try:
         st.markdown("<h2 style='color: #06b6d4;'>⚙️ Configuration</h2>", unsafe_allow_html=True)
         st.markdown("---")
         
-        # API Key
+        # API Key Entry Point
+        st.markdown("""
+        <div style="background: linear-gradient(135deg, rgba(6, 182, 212, 0.15), rgba(124, 58, 237, 0.15)); 
+                    border: 1px solid rgba(6, 182, 212, 0.3); border-radius: 8px; padding: 12px; 
+                    margin-bottom: 12px; text-align: center;">
+            <span style="color: #06b6d4; font-weight: 700; font-size: 0.9rem;">🔐 API KEY ENTRY POINT</span>
+        </div>
+        """, unsafe_allow_html=True)
+        
         api_key = st.text_input(
             "Google AI API Key",
             type="password",
-            help="Get from aistudio.google.com/app/apikey"
+            help="Get from aistudio.google.com/app/apikey",
+            placeholder="sk-ant-...",
+            key="api_key_input"
         )
+        
+        # Show API Key Status
+        if api_key:
+            st.markdown("""
+            <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); 
+                        border-radius: 8px; padding: 8px; color: #6ee7b7; font-size: 0.8rem; text-align: center;">
+                ✅ API Key Connected
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            st.markdown("""
+            <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); 
+                        border-radius: 8px; padding: 8px; color: #fbbf24; font-size: 0.8rem; text-align: center;">
+                ⚠️ API Key Required
+            </div>
+            """, unsafe_allow_html=True)
         
         st.markdown("---")
         st.markdown("<h3 style='color: #f1f5f9;'>📋 Product Details</h3>", unsafe_allow_html=True)
@@ -856,6 +882,6 @@ if st.button("🚀 Generate Report", use_container_width=True, type="primary"):
 st.markdown("---")
 st.markdown("""
 <div style="text-align: center; color: #64748b; font-size: 0.8rem; padding: 20px;">
-    <strong>PharmIntel Pro v4.1</strong> | Pharmaceutical Market Intelligence | © 2025
+    <strong>Market Entry Optimization</strong> | Enterprise Pharmaceutical Intelligence Platform | © 2025
 </div>
 """, unsafe_allow_html=True)
