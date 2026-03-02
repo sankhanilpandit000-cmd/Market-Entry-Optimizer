@@ -248,6 +248,20 @@ try:
     <div class="main-header">
         <div class="header-title">🚀 Market Entry Optimization</div>
         <div class="header-subtitle">Enterprise Pharmaceutical Market Entry Intelligence Platform</div>
+        <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(6, 182, 212, 0.2); display: flex; gap: 20px;">
+            <div style="flex: 1; text-align: center;">
+                <span style="color: #06b6d4; font-weight: 700; font-size: 0.9rem;">STEP 1</span><br>
+                <span style="color: #94a3b8; font-size: 0.8rem;">Enter API Key</span>
+            </div>
+            <div style="flex: 1; text-align: center;">
+                <span style="color: #06b6d4; font-weight: 700; font-size: 0.9rem;">STEP 2</span><br>
+                <span style="color: #94a3b8; font-size: 0.8rem;">Add Product Info</span>
+            </div>
+            <div style="flex: 1; text-align: center;">
+                <span style="color: #06b6d4; font-weight: 700; font-size: 0.9rem;">STEP 3</span><br>
+                <span style="color: #94a3b8; font-size: 0.8rem;">Generate Report</span>
+            </div>
+        </div>
     </div>
     """, unsafe_allow_html=True)
 except Exception as e:
@@ -346,6 +360,57 @@ except Exception as e:
 # ============================================================================
 
 try:
+    st.markdown("""
+    <style>
+        .api-entry-button {
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(124, 58, 237, 0.2));
+            border: 2px solid #06b6d4;
+            border-radius: 12px;
+            padding: 16px 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+        
+        .api-entry-button:hover {
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.3), rgba(124, 58, 237, 0.3));
+            border-color: #0ea5e9;
+            box-shadow: 0 10px 30px rgba(6, 182, 212, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .api-entry-label {
+            color: #06b6d4;
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+        }
+        
+        .api-entry-sublabel {
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    # Create clickable API Key entry point
+    col1, col2, col3 = st.columns([0.5, 2, 0.5])
+    
+    with col2:
+        st.markdown("""
+        <div class="api-entry-button" onclick="document.querySelector('[data-testid=\"stSidebar\"] > div').scrollIntoView(true); 
+                                                   setTimeout(() => {document.querySelector('input[placeholder=\"sk-ant-...\"]')?.focus()}, 500)">
+            <div class="api-entry-label">🔐 CLICK HERE TO ENTER API KEY</div>
+            <div class="api-entry-sublabel">Click to open API Key configuration panel</div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Alternative button approach using Streamlit button
+        st.info("👉 **Or scroll to the left sidebar** and enter your API Key in the **🔐 API KEY ENTRY POINT** section")
+    
+    st.markdown("---")
+    
     st.markdown('<div class="section-header"><div class="section-title">📝 Analysis Input</div></div>', unsafe_allow_html=True)
     
     col1, col2 = st.columns([2, 1])
@@ -364,7 +429,9 @@ try:
                     border-radius: 8px; padding: 15px; margin-top: 0;">
             <strong style="color: #06b6d4;">✓ Ready to Analyze</strong><br>
             <span style="font-size: 0.85rem; color: #cbd5e1;">
-                Click button below to generate comprehensive pharmaceutical market analysis report.
+                1️⃣ Enter API Key (left panel)<br>
+                2️⃣ Fill product details<br>
+                3️⃣ Click Generate Report
             </span>
         </div>
         """, unsafe_allow_html=True)
